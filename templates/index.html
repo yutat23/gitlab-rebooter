@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>GitLab Rebooter</title>
+  <link rel="shortcut icon" type="images/png" href="images/favicon.png" id="favicon" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    function toggleDateTimeField() {
+      var executionType = document.getElementById("execution_type").value;
+      var dateTimeField = document.getElementById("datetime-field");
+      if (executionType === "scheduled") {
+        dateTimeField.style.display = "block";
+      } else {
+        dateTimeField.style.display = "none";
+      }
+    }
+
+    function confirmSubmission() {
+      var executionType = document.getElementById("execution_type").value;
+      var executionTime = document.getElementById("execution_time").value;
+      if (executionType === "scheduled" && executionTime === "") {
+        alert("予約実行が選択されていますが、日付が入力されていません。");
+        return false;
+      }
+      var random = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
+      var confirmation = prompt("GitLabが再起動されることになります。\n再起動する場合は以下の確認コードを入力してください。\n\n" + random);
+      if (confirmation === null) {
+        return false;
+      }
+      else if (confirmation !== random) {
+        alert("確認コードが一致しませんでした。");
+        return false;
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-gray-100">
+  <div class="max-w-md mx-auto mt-10">
+    <h1 class="text-xl font-bold mb-4">GitLab Rebooter</h1>
+    <form action="/run_command" method="post" class="bg-white p-6 rounded-lg shadow" id="rebootForm"
+      onsubmit="return confirmSubmission()">
+      <div class="mb-4">
+        <label for="execution_type" class="block text-sm font-medium text-gray-700">実行方法</label>
+        <select name="execution_type" id="execution_type" onchange="toggleDateTimeField()"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+          <option value="immediate">即時実行</option>
+          <option value="scheduled">予約実行</option>
+        </select>
+      </div>
+      <div class="mb-4" id="datetime-field" style="display: none;">
+        <label for="execution_time" class="block text-sm font-medium text-gray-700">予約時間</label>
+        <input type="datetime-local" name="execution_time" id="execution_time"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+      </div>
+      <input type="submit" value="Run"
+        class="w-full bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700 cursor-pointer">
+    </form>
+    <div>
+      <h2 class="text-lg font-semibold mb-2 mt-4">予約一覧</h2>
+      <div>
+        {% if jobs|length == 0 %}
+        <p class="text-gray-500">予約はありません</p>
+        {% else %}
+        <table class="w-full bg-white p-6 rounded-lg shadow">
+          <tbody>
+            <tr>
+              <th>予約時間</th>
+            </tr>
+            {% for job in jobs %}
+            <tr>
+              <td align="center">{{ job.next_run_time }}</td>
+              <!-- cancel button -->
+              <td>
+                <form action="/cancel_command" method="post">
+                  <input type="hidden" name="job_id" value="{{ job.id }}">
+                  <input type="submit" value="Cancel"
+                    class="bg-red-600 text-white p-1 rounded hover:bg-red-700 cursor-pointer">
+                </form>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </div>
+    </div>
+    {% if output %}
+    <div class="mt-4 bg-white p-6 rounded-lg shadow">
+      <h2 class="text-lg font-semibold mb-2">Output:</h2>
+      <pre class="bg-gray-100 p-4 rounded">{{ output }}</pre>
+    </div>
+    {% endif %}
+  </div>
+</body>
+
+</html>
