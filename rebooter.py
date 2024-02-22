@@ -10,7 +10,7 @@ import configparser
 app = Flask(__name__, static_folder='./templates/images')
 filedir = os.path.dirname(os.path.abspath(__file__))
 inifile = configparser.ConfigParser()
-inifile.read('config.ini', 'UTF-8')
+inifile.read(filedir + '/config.ini', 'UTF-8')
 auth_user = inifile.get('auth', 'user')
 auth_password = inifile.get('auth', 'password')
 secret_key = inifile.get('app','secret_key')
