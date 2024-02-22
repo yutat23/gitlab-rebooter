@@ -1,20 +1,28 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_httpauth import HTTPBasicAuth
 from flask_apscheduler import APScheduler
 import subprocess
 import datetime
 import uuid
-
+import configparser
 
 app = Flask(__name__, static_folder='./templates/images')
-app.secret_key = b"7ab56c834c5d4d53b9dfa68ec184a933"
+filedir = os.path.dirname(os.path.abspath(__file__))
+inifile = configparser.ConfigParser()
+inifile.read('config.ini', 'UTF-8')
+auth_user = inifile.get('auth', 'user')
+auth_password = inifile.get('auth', 'password')
+secret_key = inifile.get('app','secret_key')
+
+app.secret_key = secret_key
 auth = HTTPBasicAuth()
 scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
 users = {
-  "test": "test"
+  auth_user: auth_password
 }
 
 @auth.verify_password
